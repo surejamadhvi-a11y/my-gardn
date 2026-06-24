@@ -1,169 +1,86 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useGarden } from "./GardenContext"
 
-// Wikipedia article title overrides (where common name ≠ article title)
-const WIKI = {
-  "Cherry Tomatoes":           "Cherry tomato",
-  "Beefsteak Tomatoes":        "Beef tomato",
-  "Pak Choi":                  "Bok choy",
-  "Savoy Cabbage":             "Savoy cabbage",
-  "Brussels Sprouts":          "Brussels sprout",
-  "Swiss Chard":               "Chard",
-  "Spinach (Baby)":            "Spinach",
-  "Spring Onions":             "Scallion",
-  "Sugar Snap Peas":           "Snap pea",
-  "Runner Beans":              "Runner bean",
-  "French Beans":              "Green bean",
-  "Broad Beans":               "Fava bean",
-  "Jerusalem Artichoke":       "Jerusalem artichoke",
-  "Sweet Potatoes":            "Sweet potato",
-  "Red Onions":                "Red onion",
-  "Dwarf Apple":               "Apple",
-  "Dwarf Pear":                "Pear",
-  "Container Lemon":           "Lemon",
-  "Container Lime":            "Key lime",
-  "Container Orange":          "Sweet orange",
-  "Red Currants":              "Redcurrant",
-  "Black Currants":            "Blackcurrant",
-  "Goji Berries":              "Wolfberry",
-  "Physalis":                  "Cape gooseberry",
-  "Holy Basil / Tulsi":        "Ocimum tenuiflorum",
-  "Thai Basil":                "Thai basil",
-  "Lemon Balm":                "Melissa officinalis",
-  "Bay Laurel":                "Laurus nobilis",
-  "Garlic Chives":             "Chinese chives",
-  "Vietnamese Coriander":      "Vietnamese coriander",
-  "Stevia":                    "Stevia rebaudiana",
-  "Hyssop":                    "Hyssop",
-  "Valerian":                  "Valerian (herb)",
-  "Catnip":                    "Catnip",
-  "Feverfew":                  "Feverfew",
-  "Lemon Verbena":             "Lemon verbena",
-  "Lovage":                    "Lovage",
-  "Cornflowers":               "Cornflower",
-  "Foxgloves":                 "Digitalis purpurea",
-  "Hollyhocks":                "Alcea rosea",
-  "Delphiniums":               "Delphinium",
-  "Lupins":                    "Lupinus",
-  "Echinacea":                 "Echinacea purpurea",
-  "Love in a Mist":            "Nigella damascena",
-  "Scabiosa":                  "Scabiosa",
-  "Nicotiana":                 "Nicotiana tabacum",
-  "Strawflower":               "Xerochrysum bracteatum",
-  "Morning Glory":             "Ipomoea purpurea",
-  "Buddleja":                  "Buddleja davidii",
-  "Lilac":                     "Syringa vulgaris",
-  "Azalea":                    "Rhododendron",
-  "Camellia":                  "Camellia japonica",
-  "Forsythia":                 "Forsythia",
-  "Sweet Peas":                "Sweet pea",
-  "Snapdragons":               "Antirrhinum",
-  "Alliums":                   "Allium",
-  "Chrysanthemums":            "Chrysanthemum",
-  "Ranunculus":                "Ranunculus asiaticus",
-  "Anemones":                  "Anemone coronaria",
-  "Baby's Breath":             "Gypsophila paniculata",
-  "Statice":                   "Limonium sinuatum",
-  "Asters":                    "Aster",
-  "Rudbeckia":                 "Rudbeckia hirta",
-  "Gaillardia":                "Gaillardia",
-  "Helenium":                  "Helenium autumnale",
-  "Gerbera Daisy":             "Gerbera",
-  "Agapanthus":                "Agapanthus",
-  "Monarda / Bee Balm":        "Monarda",
-  "Erigeron":                  "Erigeron",
-  "Heuchera":                  "Heuchera",
-  "Echinops / Globe Thistle":  "Echinops ritro",
-  "Achillea / Yarrow":         "Achillea millefolium",
-  "Kniphofia / Red Hot Poker": "Kniphofia",
-  "Stachys / Lamb's Ear":      "Stachys byzantina",
-  "Liatris / Blazing Star":    "Liatris spicata",
-  "Platycodon / Balloon Flower":"Platycodon grandiflorus",
-  "Catmint":                   "Nepeta",
-  "Aquilegia / Columbine":     "Aquilegia",
-  "Digitalis (Foxglove)":      "Digitalis purpurea",
-  "Hellebore":                 "Helleborus",
-  "Bleeding Heart":            "Lamprocapnos spectabilis",
-  "Geranium (Hardy)":          "Geranium (plant)",
-  "Pelargonium":               "Pelargonium",
-  "Begonia (Tuberous)":        "Begonia",
-  "Lisianthus":                "Eustoma grandiflorum",
-  "Celosia":                   "Celosia argentea",
-  "Portulaca":                 "Portulaca grandiflora",
-  "Candytuft":                 "Iberis",
-  "Aubrieta":                  "Aubrieta",
-  "Thalictrum":                "Thalictrum",
-  "Veronicastrum":             "Veronicastrum virginicum",
-  "Cleome / Spider Flower":    "Cleome spinosa",
-  "Tithonia / Mexican Sunflower": "Tithonia rotundifolia",
-  "Globe Amaranth":            "Gomphrena globosa",
-  "Nigella":                   "Nigella damascena",
-  "Poppies":                   "Papaver",
+// Unsplash keyword overrides for plants where the common name needs help
+const IMG_KW = {
+  "Pak Choi":                    "bok+choy,asian+vegetable",
+  "Jerusalem Artichoke":         "jerusalem+artichoke,sunchoke",
+  "Sweet Potatoes":              "sweet+potato,orange+root",
+  "Spring Onions":               "spring+onion,scallion+green",
+  "Sugar Snap Peas":             "snap+peas,green+pods",
+  "Runner Beans":                "runner+beans,climbing+beans",
+  "French Beans":                "green+beans,string+beans",
+  "Broad Beans":                 "fava+beans,broad+beans",
+  "Edamame":                     "edamame,soybean+pods",
+  "Sweetcorn":                   "corn,maize+crop",
+  "Butternut Squash":            "butternut+squash,orange+squash",
+  "Bell Peppers":                "bell+pepper,colorful+peppers",
+  "Chili Peppers":               "chili+pepper,red+hot+pepper",
+  "Brussels Sprouts":            "brussels+sprout,green+brassica",
+  "Swiss Chard":                 "rainbow+chard,colorful+stems",
+  "Savoy Cabbage":               "savoy+cabbage,crinkled+green",
+  "Dwarf Apple":                 "apple+tree,red+apple+harvest",
+  "Dwarf Pear":                  "pear+tree,green+pears",
+  "Container Lemon":             "lemon+tree,yellow+citrus",
+  "Container Lime":              "lime+tree,green+citrus",
+  "Container Orange":            "orange+tree,citrus+fruit",
+  "Red Currants":                "redcurrant,red+berries+cluster",
+  "Black Currants":              "blackcurrant,black+berries",
+  "Goji Berries":                "goji+berry,red+wolfberries",
+  "Physalis":                    "cape+gooseberry,physalis+lantern",
+  "Holy Basil / Tulsi":          "tulsi+basil,holy+basil+herb",
+  "Thai Basil":                  "thai+basil,purple+stem+basil",
+  "Lemon Balm":                  "lemon+balm,melissa+herb+leaves",
+  "Bay Laurel":                  "bay+laurel,bay+leaf+tree",
+  "Garlic Chives":               "garlic+chives,chinese+chives+white+flower",
+  "Vietnamese Coriander":        "coriander+herb,green+herb+leaves",
+  "Stevia":                      "stevia+plant,sweet+leaf+herb",
+  "Hyssop":                      "hyssop+blue+flower,herb+flowers",
+  "Valerian":                    "valerian+flower,white+pink+flower+herb",
+  "Feverfew":                    "feverfew+daisy,white+daisy+herb",
+  "Catnip":                      "catnip+plant,nepeta+herb",
+  "Lemon Verbena":               "lemon+verbena,lemon+herb+leaves",
+  "Lovage":                      "lovage+herb,tall+herb+garden",
+  "Love in a Mist":              "nigella+flower,blue+nigella+bloom",
+  "Monarda / Bee Balm":          "bee+balm+flower,monarda+red",
+  "Achillea / Yarrow":           "yarrow+flower,achillea+yellow",
+  "Kniphofia / Red Hot Poker":   "red+hot+poker,kniphofia+orange",
+  "Stachys / Lamb's Ear":        "lambs+ear+plant,silver+grey+leaves",
+  "Liatris / Blazing Star":      "liatris+purple,blazing+star+flower",
+  "Platycodon / Balloon Flower": "balloon+flower,platycodon+blue",
+  "Echinops / Globe Thistle":    "globe+thistle,echinops+blue+ball",
+  "Tithonia / Mexican Sunflower":"mexican+sunflower,tithonia+orange",
+  "Cleome / Spider Flower":      "spider+flower,cleome+pink",
+  "Aquilegia / Columbine":       "columbine+flower,aquilegia+purple",
+  "Digitalis (Foxglove)":        "foxglove+flower,digitalis+pink",
+  "Geranium (Hardy)":            "hardy+geranium,cranesbill+purple",
+  "Begonia (Tuberous)":          "tuberous+begonia,bright+begonia+flower",
+  "Thalictrum":                  "thalictrum+flower,meadow+rue+purple",
+  "Veronicastrum":               "veronicastrum+spire,white+flower+spike",
+  "Globe Amaranth":              "gomphrena+flower,globe+amaranth+purple",
+  "Nigella":                     "nigella+damascena,love+in+mist",
+  "Lisianthus":                  "lisianthus+flower,eustoma+purple",
+  "Scabiosa":                    "scabiosa+flower,pincushion+flower",
+  "Heuchera":                    "heuchera+foliage,coral+bells+leaves",
+  "Erigeron":                    "erigeron+daisy,fleabane+purple",
+  "Hollyhocks":                  "hollyhock+flower,tall+pink+flower",
+  "Rudbeckia":                   "rudbeckia+flower,black+eyed+susan",
+  "Gaillardia":                  "gaillardia+flower,blanket+flower+red",
+  "Helenium":                    "helenium+flower,sneezeweed+yellow",
+  "Gerbera Daisy":               "gerbera+daisy,colorful+gerbera",
+  "Agapanthus":                  "agapanthus+blue,lily+of+the+nile",
+  "Statice":                     "statice+flower,limonium+purple+dried",
+  "Alliums":                     "allium+flower,purple+globe+flower",
+  "Sweet Peas":                  "sweet+pea+flower,climbing+pink+flower",
+  "Baby's Breath":               "baby+breath+flower,gypsophila+white",
 }
 
-function wikiTitle(plantName) {
-  return WIKI[plantName] || plantName
-}
-
-function useWikipediaImages(plants) {
-  const [images, setImages] = useState({})
-
-  useEffect(() => {
-    const cached = {}
-    const toFetch = []
-
-    plants.forEach(p => {
-      const key = `wimg_${p.name}`
-      const v = sessionStorage.getItem(key)
-      if (v !== null) {
-        cached[p.name] = v === "" ? null : v
-      } else {
-        toFetch.push(p)
-      }
-    })
-
-    if (Object.keys(cached).length > 0) setImages(prev => ({ ...prev, ...cached }))
-    if (toFetch.length === 0) return
-
-    // Batch into groups of 50 (Wikipedia API limit)
-    for (let i = 0; i < toFetch.length; i += 50) {
-      const batch = toFetch.slice(i, i + 50)
-      // Map wiki title → plant name so we can reverse the lookup
-      const titleToName = {}
-      batch.forEach(p => { titleToName[wikiTitle(p.name)] = p.name })
-
-      const titleStr = Object.keys(titleToName).map(encodeURIComponent).join("|")
-      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${titleStr}&prop=pageimages&format=json&pithumbsize=500&origin=*`
-
-      fetch(url)
-        .then(r => r.json())
-        .then(data => {
-          // Build normalization + redirect chain: canonical title → original query title
-          const chain = {}
-          ;(data.query?.normalized || []).forEach(n => { chain[n.to] = n.from })
-          ;(data.query?.redirects || []).forEach(r => {
-            chain[r.to] = chain[r.from] || r.from
-          })
-
-          const newImages = {}
-          Object.values(data.query?.pages || {}).forEach(page => {
-            const imgUrl = page.thumbnail?.source || null
-            // Walk the chain back to the original query title
-            const original = chain[page.title] || page.title
-            const plantName = titleToName[original] || titleToName[page.title]
-            if (plantName) {
-              newImages[plantName] = imgUrl
-              sessionStorage.setItem(`wimg_${plantName}`, imgUrl || "")
-            }
-          })
-
-          setImages(prev => ({ ...prev, ...newImages }))
-        })
-        .catch(() => {})
-    }
-  }, [])
-
-  return images
+function plantImgSrc(plant) {
+  const kw = IMG_KW[plant.name]
+  if (kw) return `https://source.unsplash.com/400x300/?${kw}`
+  const base = plant.name.split(/\s*[/()]\s*/)[0].trim().toLowerCase().replace(/\s+/g, "+")
+  const suffix = plant.category === "Flowers" ? ",flower,bloom,garden" : ",plant,vegetable,garden"
+  return `https://source.unsplash.com/400x300/?${base}${suffix}`
 }
 
 const plants = [
@@ -207,7 +124,7 @@ const plants = [
   { id:37,  name:"Runner Beans",        category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"60–70 days",        tip:"Flowers are edible too. Pick regularly to prevent stringy pods and keep the plant producing." },
   { id:38,  name:"French Beans",        category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"50–60 days",        tip:"Dwarf varieties need no support — ideal for containers. Harvest young before seeds swell." },
   { id:39,  name:"Broad Beans",         category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"80–90 days",        tip:"Plant in autumn for the best harvest. Pinch out growing tips once in flower to deter blackfly." },
-  { id:40,  name:"Edamame",             category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"70–80 days",        tip:"Harvest when pods feel plump but still bright green. Boil in salted water for 5 minutes straight from the garden." },
+  { id:40,  name:"Edamame",             category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"70–80 days",        tip:"Harvest when pods feel plump but still bright green. Boil in salted water for 5 minutes." },
   { id:41,  name:"Celery",              category:"Edibles", sun:"Partial Sun 🌤️",  location:"Balcony / Backyard",  difficulty:"Hard",     harvest:"85–120 days",       tip:"Needs consistent moisture and feeding. Blanch stems with cardboard for milder flavour." },
   { id:42,  name:"Fennel",              category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"65–90 days",        tip:"Keep away from tomatoes and beans — fennel inhibits their growth. Bronze fennel is ornamental too." },
   { id:43,  name:"Leeks",               category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"120–150 days",      tip:"Start indoors and transplant when pencil-thick. Drop into deep holes — no backfilling needed." },
@@ -229,18 +146,18 @@ const plants = [
   { id:64,  name:"Gooseberries",        category:"Edibles", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"June–July",         tip:"One of the easiest soft fruits. Prune to an open goblet shape for good air circulation." },
   { id:65,  name:"Red Currants",        category:"Edibles", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"July",              tip:"Incredibly productive. Can be trained flat against a fence to save space." },
   { id:66,  name:"Black Currants",      category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"July–August",       tip:"Fruit on one-year-old wood — remove one third of old stems each year after harvest." },
-  { id:67,  name:"Goji Berries",        category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Year 2+",           tip:"Drought-tolerant once established. Harvest when berries are deep red and come off easily." },
+  { id:67,  name:"Goji Berries",        category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Year 2+",           tip:"Drought-tolerant once established. Harvest when berries are deep red." },
   { id:68,  name:"Figs",                category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"Late summer",       tip:"Root restriction increases fruiting — grow in a container or line the planting pit with slabs." },
   { id:69,  name:"Grapes",              category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Hard",     harvest:"September–October", tip:"Prune hard every winter. Thin grape clusters in summer for larger, sweeter individual fruits." },
   { id:70,  name:"Dwarf Apple",         category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"August–October",    tip:"M27 rootstock stays under 1.2 m — perfect for pots. Needs a pollination partner nearby." },
   { id:71,  name:"Dwarf Pear",          category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"August–October",    tip:"Quince A or C rootstock for containers. Pears need two varieties for cross-pollination." },
   { id:72,  name:"Container Lemon",     category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"Year-round",        tip:"Bring inside before first frost. Feed with citrus fertilizer from spring to autumn." },
-  { id:73,  name:"Container Lime",      category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"Year-round",        tip:"Needs more warmth than lemon. Spray leaves with rainwater to prevent brown tips in dry air." },
+  { id:73,  name:"Container Lime",      category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"Year-round",        tip:"Needs more warmth than lemon. Spray leaves with rainwater to prevent brown tips." },
   { id:74,  name:"Container Orange",    category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"Winter–Spring",     tip:"Calamondin varieties are easiest indoors. Fruits are tart but great for marmalade." },
   { id:75,  name:"Avocado",             category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Backyard",   difficulty:"Hard",     harvest:"3–5 years",         tip:"Grow from a pit in water for a fun houseplant. Fruiting outdoors requires a frost-free climate." },
   { id:76,  name:"Passion Fruit",       category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Moderate", harvest:"Year 2+",           tip:"Vigorous climber — give it a strong trellis. Hand-pollinate with a brush for a reliable set." },
   { id:77,  name:"Kiwi",                category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Hard",     harvest:"Autumn, year 3+",   tip:"Need one male for every 6 female plants. 'Jenny' is self-fertile if space is limited." },
-  { id:78,  name:"Physalis",            category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"75–85 days",        tip:"Fruits are ripe when the papery husk turns golden. Self-seeds freely — can become weedy." },
+  { id:78,  name:"Physalis",            category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"75–85 days",        tip:"Fruits are ripe when the papery husk turns golden. Self-seeds freely." },
   { id:79,  name:"Pomegranate",         category:"Edibles", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Moderate", harvest:"Year 3+",           tip:"Drought-tolerant once established. Dwarf varieties fruit well in large pots." },
   { id:80,  name:"Elderberries",        category:"Edibles", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"Late summer",       tip:"Flowers and berries both useable. Never eat raw berries — always cook them." },
 
@@ -251,22 +168,22 @@ const plants = [
   { id:93,  name:"Thyme",               category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Harvest before flowering for best flavour. A natural antiseptic — no chemical sprays needed." },
   { id:94,  name:"Cilantro",            category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"20–30 days",        tip:"Bolts quickly in heat — grow in cool weather or light shade. Succession sow every 2 weeks." },
   { id:95,  name:"Parsley",             category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"70–90 days",        tip:"Slow to germinate — soak seeds in warm water overnight to speed things up." },
-  { id:96,  name:"Chives",              category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"30 days",           tip:"Cut 2 cm above the soil and they regrow endlessly. Great companion plant — deters carrot fly." },
+  { id:96,  name:"Chives",              category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"30 days",           tip:"Cut 2 cm above the soil and they regrow endlessly. Great companion plant." },
   { id:97,  name:"Dill",                category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"40–60 days",        tip:"Harvest feathery leaves before flowering. Attracts beneficial insects like lacewings." },
   { id:98,  name:"Sage",                category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Cut back hard after flowering to keep bushy. Purple sage is ornamental too." },
   { id:99,  name:"Oregano",             category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Flavour intensifies in dry conditions — under-watered oregano actually tastes better." },
-  { id:100, name:"Tarragon",            category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"French tarragon (not Russian) has the best flavour. Divide clumps every 2–3 years to refresh." },
+  { id:100, name:"Tarragon",            category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"French tarragon (not Russian) has the best flavour. Divide clumps every 2–3 years." },
   { id:101, name:"Lemongrass",          category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"3–4 months",        tip:"Naturally repels mosquitoes. Bring indoors over winter in cooler climates." },
   { id:102, name:"Lemon Balm",          category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Spreads like mint — grow in a pot. Calming tea plant; rub leaves for an instant lemon scent." },
   { id:103, name:"Ginger",              category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"8–10 months",       tip:"Plant a shop-bought knob in spring. Keep warm and moist. Harvest in autumn when leaves yellow." },
   { id:104, name:"Turmeric",            category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Moderate", harvest:"8–10 months",       tip:"Grow exactly like ginger. The bright orange rhizomes are a bonus — rinse and grate fresh." },
   { id:105, name:"Bay Laurel",          category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Slow-growing but long-lived — a bay tree can last decades. Clip into a lollipop shape." },
   { id:106, name:"Marjoram",            category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Sweeter and more delicate than oregano. Dry bunches upside down for intensified flavour." },
-  { id:107, name:"Sorrel",              category:"Edibles", sun:"Partial Sun 🌤️",  location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"One of the earliest spring greens. Lemony flavour; add raw to salads or wilt into sauces." },
-  { id:108, name:"Stevia",              category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Leaves are 200× sweeter than sugar. Dry and crumble them as a natural zero-calorie sweetener." },
+  { id:107, name:"Sorrel",              category:"Edibles", sun:"Partial Sun 🌤️",  location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"One of the earliest spring greens. Lemony flavour; add raw to salads." },
+  { id:108, name:"Stevia",              category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Leaves are 200× sweeter than sugar. Dry and crumble as a natural zero-calorie sweetener." },
   { id:109, name:"Holy Basil / Tulsi",  category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Sacred in Ayurvedic tradition. Stronger, clove-like flavour vs sweet basil. Makes excellent tea." },
   { id:110, name:"Thai Basil",          category:"Edibles", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"25–35 days",        tip:"More heat-tolerant than Italian basil and holds up in cooked dishes without losing flavour." },
-  { id:111, name:"Borage",              category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"50–60 days",        tip:"Edible blue star flowers taste like cucumber. Attracts bees powerfully — great companion plant." },
+  { id:111, name:"Borage",              category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"50–60 days",        tip:"Edible blue star flowers taste like cucumber. Attracts bees powerfully." },
   { id:112, name:"Lemon Verbena",       category:"Edibles", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Harvest anytime",   tip:"Intensely lemony — one leaf perfumes a whole room. Deciduous; don't panic when it drops leaves." },
   { id:113, name:"Chervil",             category:"Edibles", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"40–50 days",        tip:"Anise-flavoured and feathery. Add raw at the end of cooking — heat destroys its delicate taste." },
   { id:114, name:"Lovage",              category:"Edibles", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"Year 2+",           tip:"Giant perennial herb — can reach 2 m. Tastes like celery; use leaves, seeds, and stems." },
@@ -283,7 +200,7 @@ const plants = [
   { id:202, name:"Sunflowers",          category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"70–100 days to bloom", tip:"Plant in well-draining soil. Attract pollinators powerfully. Dwarf varieties suit containers." },
   { id:203, name:"Roses",               category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Moderate", harvest:"6–8 weeks to bloom",   tip:"Plant garlic nearby to deter aphids naturally. Mulch heavily to retain moisture." },
   { id:204, name:"Pansies",             category:"Flowers", sun:"Partial Sun 🌤️",  location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"8–10 weeks to bloom",  tip:"Edible flowers! Perfect for cool weather — they fade in summer heat. Deadhead to prolong blooming." },
-  { id:205, name:"Zinnias",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"60–70 days to bloom",  tip:"Direct sow after frost. Cutting flowers encourages more blooms — great for long vase life." },
+  { id:205, name:"Zinnias",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"60–70 days to bloom",  tip:"Direct sow after frost. Cutting flowers encourages more blooms." },
   { id:206, name:"Dahlias",             category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Moderate", harvest:"8 weeks to bloom",     tip:"Pinch the main stem at 30 cm to encourage bushier growth and more flowers." },
   { id:207, name:"Nasturtiums",         category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"35–52 days to bloom",  tip:"Both flowers and leaves are edible with a peppery taste. Thrives in poor soil." },
   { id:208, name:"Chamomile",           category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"60 days to bloom",     tip:"Harvest flowers when fully open and dry them for tea. Self-seeds freely." },
@@ -291,22 +208,22 @@ const plants = [
   { id:210, name:"Cosmos",              category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"7–8 weeks to bloom",   tip:"Thrives in poor, dry soil — over-fertilizing causes leaves over flowers. Self-seeds year after year." },
   { id:211, name:"Hibiscus",            category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"2–3 months to bloom",  tip:"Flowers are edible — used in teas and jams. Keep consistently moist and feed with potassium." },
   { id:212, name:"Snapdragons",         category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"8–12 weeks to bloom",  tip:"Prefer cool weather. Pinch growing tips when young to encourage more flower spikes." },
-  { id:213, name:"Sweet Peas",          category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"12–16 weeks to bloom", tip:"Soak seeds overnight before planting. Pick flowers regularly — stopping seed set extends blooming." },
+  { id:213, name:"Sweet Peas",          category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Moderate", harvest:"12–16 weeks to bloom", tip:"Soak seeds overnight before planting. Pick flowers regularly to extend blooming." },
   { id:214, name:"Echinacea",           category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"2nd year to bloom",    tip:"Drought tolerant once established. Leave seed heads in winter — birds love them." },
   { id:215, name:"Poppies",             category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"60–90 days to bloom",  tip:"Direct sow in autumn or early spring — they need a cold period to germinate. Never transplant." },
   { id:216, name:"Cornflowers",         category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"65–75 days to bloom",  tip:"Edible blue flowers loved by bees. Direct sow in autumn for early colour." },
   { id:217, name:"Foxgloves",           category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"Year 2 to bloom",      tip:"Biennial — flowers in the second year. Toxic to humans and pets; handle with gloves." },
   { id:218, name:"Hollyhocks",          category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Year 2 to bloom",      tip:"Tall and dramatic against walls or fences. Edible flowers; petals make a natural blue-black dye." },
   { id:219, name:"Delphiniums",         category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Hard",     harvest:"70–90 days to bloom",  tip:"Needs staking in wind. Cut spent spikes to the base for a second flush of blooms." },
-  { id:220, name:"Lupins",              category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Moderate", harvest:"Year 2 to bloom",      tip:"Fix nitrogen into the soil — excellent for garden health. Deadhead promptly for repeat flowering." },
+  { id:220, name:"Lupins",              category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Moderate", harvest:"Year 2 to bloom",      tip:"Fix nitrogen into the soil — excellent for garden health. Deadhead promptly." },
   { id:221, name:"Verbena",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"8–10 weeks to bloom",  tip:"Drought tolerant once established. Attracts butterflies. Cut back mid-summer for a second flush." },
   { id:222, name:"Salvia",              category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"70–90 days to bloom",  tip:"Pollinator magnet — bumblebees adore it. Annual salvias bloom all summer without deadheading." },
   { id:223, name:"Alyssum",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"45–60 days to bloom",  tip:"Honey-scented white flowers. Attracts hoverflies that eat aphids — brilliant companion plant." },
   { id:224, name:"Celosia",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"60–80 days to bloom",  tip:"Fascinating velvet or feathery flower heads. Loves heat and humidity — keep well watered." },
-  { id:225, name:"Portulaca",           category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"50–60 days to bloom",  tip:"Thrives in hot, dry conditions where other plants fail. Flowers close at night and on cloudy days." },
+  { id:225, name:"Portulaca",           category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"50–60 days to bloom",  tip:"Thrives in hot, dry conditions where other plants fail. Flowers close at night." },
   { id:226, name:"Scabiosa",            category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"70–90 days to bloom",  tip:"A magnet for bees and butterflies. Deadhead regularly for non-stop flowering all summer." },
-  { id:227, name:"Love in a Mist",      category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"50–65 days to bloom",  tip:"Direct sow in autumn or spring. Unusual inflated seed pods are great for dried flower arrangements." },
-  { id:228, name:"Nicotiana",           category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"60–80 days to bloom",  tip:"Intensely fragrant especially in the evening. Attracts moths as pollinators — plant near seating." },
+  { id:227, name:"Love in a Mist",      category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"50–65 days to bloom",  tip:"Direct sow in autumn or spring. Unusual inflated seed pods are great for dried arrangements." },
+  { id:228, name:"Nicotiana",           category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"60–80 days to bloom",  tip:"Intensely fragrant especially in the evening. Attracts moths as pollinators." },
   { id:229, name:"Strawflower",         category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"60–80 days to bloom",  tip:"Papery petals retain colour when dried — perfect for wreaths and arrangements year-round." },
   { id:230, name:"Morning Glory",       category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"60–70 days to bloom",  tip:"Fast-growing climber — provides quick shade and privacy. Flowers open in morning light only." },
   { id:231, name:"Bougainvillea",       category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard / Balcony",  difficulty:"Moderate", harvest:"Year 2+",              tip:"The colourful 'petals' are actually bracts. Needs root restriction to bloom." },
@@ -320,7 +237,7 @@ const plants = [
   { id:239, name:"Camellia",            category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Moderate", harvest:"Winter–Spring",        tip:"Flowers in the depths of winter — a rare treat. Protect from morning frost which damages buds." },
   { id:240, name:"Forsythia",           category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Early spring",         tip:"One of the first flowers of spring. Prune immediately after flowering." },
   { id:241, name:"Buddleja",            category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer–Autumn",        tip:"Cut back hard in spring for the best flowering. Literally called butterfly bush." },
-  { id:242, name:"Tulips",              category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Spring",               tip:"Plant bulbs in autumn, pointy end up. Lifting and storing bulbs each year gives more reliable blooms." },
+  { id:242, name:"Tulips",              category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Spring",               tip:"Plant bulbs in autumn, pointy end up. Lifting and storing bulbs gives more reliable blooms." },
   { id:243, name:"Daffodils",           category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Spring",               tip:"Never cut the leaves — they feed the bulb for next year. Naturalise in grass for a wild look." },
   { id:244, name:"Crocuses",            category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Late winter–Spring",   tip:"Among the first flowers of the year. Plant in autumn in drifts for best effect." },
   { id:245, name:"Hyacinths",           category:"Flowers", sun:"Full Sun ☀️",     location:"Indoor / Balcony",    difficulty:"Easy",     harvest:"Spring",               tip:"Incredibly fragrant — one bulb fills a room. Force indoors in water-filled glass vases in autumn." },
@@ -341,18 +258,18 @@ const plants = [
   { id:260, name:"Agapanthus",          category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Summer",               tip:"Root restriction improves flowering. Evergreen varieties need frost protection in cooler climates." },
   { id:261, name:"Monarda / Bee Balm",  category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Mid summer",           tip:"Bees and hummingbirds love it. Divide every 2–3 years to prevent mildew at the centre." },
   { id:262, name:"Erigeron",            category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Summer–Autumn",        tip:"Fleabane self-seeds freely between paving cracks. Almost no care needed once established." },
-  { id:263, name:"Heuchera",            category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"Summer",               tip:"Grown primarily for dramatic foliage in bronze, purple, lime, and caramel. Tiny flowers are a bonus." },
-  { id:264, name:"Echinops / Globe Thistle", category:"Flowers", sun:"Full Sun ☀️", location:"Backyard",           difficulty:"Easy",     harvest:"Mid summer",           tip:"Dramatic blue drumstick flowers. Loved by bees. Incredibly drought tolerant and self-seeds." },
+  { id:263, name:"Heuchera",            category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard / Balcony",  difficulty:"Easy",     harvest:"Summer",               tip:"Grown primarily for dramatic foliage in bronze, purple, lime, and caramel." },
+  { id:264, name:"Echinops / Globe Thistle", category:"Flowers", sun:"Full Sun ☀️", location:"Backyard",           difficulty:"Easy",     harvest:"Mid summer",           tip:"Dramatic blue drumstick flowers. Loved by bees. Incredibly drought tolerant." },
   { id:265, name:"Thalictrum",          category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Moderate", harvest:"Summer",               tip:"Airy, cloud-like lilac flowers on tall stems. Needs no staking despite its height." },
-  { id:266, name:"Achillea / Yarrow",   category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer",               tip:"Flat-topped flower clusters in every colour. Extremely drought tolerant. Divide in spring." },
-  { id:267, name:"Kniphofia / Red Hot Poker", category:"Flowers", sun:"Full Sun ☀️", location:"Backyard",          difficulty:"Easy",     harvest:"Summer–Autumn",        tip:"Spiky orange and yellow torches that hummingbirds and bees adore. Divide clumps every few years." },
+  { id:266, name:"Achillea / Yarrow",   category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer",               tip:"Flat-topped flower clusters in every colour. Extremely drought tolerant." },
+  { id:267, name:"Kniphofia / Red Hot Poker", category:"Flowers", sun:"Full Sun ☀️", location:"Backyard",          difficulty:"Easy",     harvest:"Summer–Autumn",        tip:"Spiky orange and yellow torches that hummingbirds and bees adore." },
   { id:268, name:"Stachys / Lamb's Ear",category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer",               tip:"Grown for its irresistibly soft, silver-grey foliage. Purple flower spikes attract bees." },
   { id:269, name:"Liatris / Blazing Star", category:"Flowers", sun:"Full Sun ☀️",  location:"Backyard",            difficulty:"Easy",     harvest:"Mid–late summer",      tip:"Unusual — it flowers from the top of the spike downward. Monarch butterflies love it." },
   { id:270, name:"Platycodon / Balloon Flower", category:"Flowers", sun:"Full Sun ☀️", location:"Backyard",        difficulty:"Easy",     harvest:"Mid summer",           tip:"Named for its balloon-like buds. Long-lived and slow to emerge in spring — mark the spot." },
   { id:271, name:"Catmint",             category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Late spring–Autumn",   tip:"Cut back by half after flowering for a second flush. Bees love it. Repels aphids naturally." },
-  { id:272, name:"Phlox",               category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer",               tip:"Intensely fragrant. Divide every 3 years and discard the woody centre — replant the outer rings." },
+  { id:272, name:"Phlox",               category:"Flowers", sun:"Full Sun ☀️",     location:"Backyard",            difficulty:"Easy",     harvest:"Summer",               tip:"Intensely fragrant. Divide every 3 years and discard the woody centre." },
   { id:273, name:"Aquilegia / Columbine", category:"Flowers", sun:"Partial Sun 🌤️", location:"Backyard",           difficulty:"Easy",     harvest:"Late spring",          tip:"Beautiful spurred flowers in every colour. Self-seeds and hybridises freely." },
-  { id:274, name:"Digitalis (Foxglove)", category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",           difficulty:"Easy",     harvest:"Year 2 to bloom",      tip:"Towering spikes of tubular flowers. Let them self-seed around the garden for a naturalistic effect." },
+  { id:274, name:"Digitalis (Foxglove)", category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",           difficulty:"Easy",     harvest:"Year 2 to bloom",      tip:"Towering spikes of tubular flowers. Let them self-seed for a naturalistic woodland effect." },
   { id:275, name:"Hellebore",           category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Moderate", harvest:"Winter–Spring",        tip:"Flowers in the darkest months. Nodding heads — tilt the pot to admire the intricate centres." },
   { id:276, name:"Bleeding Heart",      category:"Flowers", sun:"Partial Sun 🌤️",  location:"Backyard",            difficulty:"Easy",     harvest:"Late spring",          tip:"Goes dormant after flowering — plant summer perennials nearby to fill the gap. Toxic if ingested." },
   { id:277, name:"Wallflower",          category:"Flowers", sun:"Full Sun ☀️",     location:"Balcony / Backyard",  difficulty:"Easy",     harvest:"Spring",               tip:"Intensely spiced fragrance. Plant in autumn for magnificent spring colour alongside tulips." },
@@ -428,14 +345,26 @@ function plantEmoji(plant) {
 }
 const difficultyColor = { Easy:"#5A8A5A", Moderate:"#E9A84C", Hard:"#D96B6B" }
 
+function PlantImage({ plant, height, radius }) {
+  return (
+    <div style={{ width:"100%", height, background:plantColor(plant.name), display:"flex", alignItems:"center", justifyContent:"center", fontSize: height > 120 ? 56 : 32, borderRadius: radius || 0, overflow:"hidden", position:"relative", flexShrink:0 }}>
+      <span style={{ position:"absolute", zIndex:1 }}>{plantEmoji(plant)}</span>
+      <img
+        src={plantImgSrc(plant)}
+        alt={plant.name}
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:2 }}
+        onError={e => { e.target.style.display = "none" }}
+      />
+    </div>
+  )
+}
+
 export default function Encyclopedia() {
   const { gardenPlants, addPlant } = useGarden()
-  const [search, setSearch]           = useState("")
-  const [activeTab, setActiveTab]     = useState("All")
+  const [search, setSearch]               = useState("")
+  const [activeTab, setActiveTab]         = useState("All")
   const [selectedPlant, setSelectedPlant] = useState(null)
-  const [justAdded, setJustAdded]     = useState(null)
-
-  const wikiImages = useWikipediaImages(plants)
+  const [justAdded, setJustAdded]         = useState(null)
 
   function handleAddToGarden(plant) {
     addPlant({
@@ -456,23 +385,6 @@ export default function Encyclopedia() {
     (activeTab === "All" || p.category === activeTab) &&
     p.name.toLowerCase().includes(search.toLowerCase())
   )
-
-  function PlantImage({ plant, height, radius }) {
-    const imgUrl = wikiImages[plant.name]
-    return (
-      <div style={{ width:"100%", height, background:plantColor(plant.name), display:"flex", alignItems:"center", justifyContent:"center", fontSize: height > 120 ? 56 : 32, borderRadius: radius || 0, overflow:"hidden", position:"relative", flexShrink:0 }}>
-        <span style={{ position:"absolute", zIndex:1 }}>{plantEmoji(plant)}</span>
-        {imgUrl && (
-          <img
-            src={imgUrl}
-            alt={plant.name}
-            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:2 }}
-            onError={e => { e.target.style.display = "none" }}
-          />
-        )}
-      </div>
-    )
-  }
 
   return (
     <div style={{ fontFamily:"'Inter', sans-serif", background:"#F7F5F2", minHeight:"100%", paddingBottom:"100px" }}>

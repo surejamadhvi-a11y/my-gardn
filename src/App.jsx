@@ -259,7 +259,7 @@ export default function App() {
   // Show onboarding for new users
   if (!onboarded) {
     return (
-      <div style={isMobile ? { height: "100dvh", background: "#F7F5F2", display: "flex", flexDirection: "column" } : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={isMobile ? { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#F7F5F2", display: "flex", flexDirection: "column" } : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={isMobile ? { flex: 1, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" } : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
           <Onboarding />
         </div>
@@ -331,7 +331,7 @@ export default function App() {
   };
 
   const outerStyle = isMobile
-    ? { height: "100dvh", background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
+    ? { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
     : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
 
   const shellStyle = isMobile
