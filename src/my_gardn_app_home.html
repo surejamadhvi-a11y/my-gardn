@@ -1,0 +1,267 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F7F5F2; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #F7F5F2;
+    border-radius: 48px;
+    border: 10px solid #1a1a1a;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+  }
+  .status-bar {
+    height: 44px;
+    padding: 14px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+  .status-icons span { font-size: 13px; color: #1a1a1a; }
+  .screen { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0 24px; }
+  .greeting { padding: 20px 0 6px; }
+  .greeting-sub { font-size: 13px; color: #9A9690; font-weight: 400; margin-bottom: 4px; }
+  .greeting-main { font-size: 26px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.5px; }
+  .greeting-main span { color: #5A8A5A; }
+
+  .search-bar {
+    margin: 16px 0;
+    background: #EEECEA;
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .search-bar svg { flex-shrink: 0; }
+  .search-bar span { font-size: 14px; color: #B0ADA8; font-weight: 400; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #B0ADA8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .quick-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .quick-tile {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .quick-tile.accent { background: #5A8A5A; }
+  .tile-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #F0EDE8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .quick-tile.accent .tile-icon { background: rgba(255,255,255,0.2); }
+  .tile-title { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .quick-tile.accent .tile-title { color: #fff; }
+  .tile-sub { font-size: 11px; color: #B0ADA8; font-weight: 400; }
+  .quick-tile.accent .tile-sub { color: rgba(255,255,255,0.65); }
+
+  .my-plants-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: hidden;
+    margin-bottom: 20px;
+  }
+  .plant-chip {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .plant-chip-emoji { font-size: 20px; }
+  .plant-chip-name { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+  .plant-chip-status {
+    font-size: 10px;
+    color: #fff;
+    background: #5A8A5A;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-weight: 500;
+  }
+  .plant-chip-status.warn { background: #E9A84C; }
+
+  .reminder-row {
+    background: #fff;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .reminder-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #5A8A5A;
+    flex-shrink: 0;
+  }
+  .reminder-text { font-size: 13px; font-weight: 500; color: #1a1a1a; flex: 1; }
+  .reminder-time { font-size: 12px; color: #B0ADA8; }
+
+  .bottom-nav {
+    height: 82px;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: flex-start;
+    padding-top: 12px;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-label { font-size: 10px; font-weight: 500; color: #C0BDB8; }
+  .nav-item.active .nav-label { color: #5A8A5A; }
+</style>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <span>●●●</span>
+      <span>WiFi</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <div class="screen">
+    <div class="greeting">
+      <div class="greeting-sub">Good morning</div>
+      <div class="greeting-main">Your Garden <span>✦</span></div>
+    </div>
+
+    <div class="search-bar">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="#B0ADA8" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#B0ADA8" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>Search plants...</span>
+    </div>
+
+    <div class="section-label">Quick actions</div>
+    <div class="quick-row">
+      <div class="quick-tile accent">
+        <div class="tile-icon">🤖</div>
+        <div class="tile-title">AI Advisor</div>
+        <div class="tile-sub">Get growing guide</div>
+      </div>
+      <div class="quick-tile">
+        <div class="tile-icon">🔬</div>
+        <div class="tile-title">Diagnose Plant</div>
+        <div class="tile-sub">Describe symptoms</div>
+      </div>
+      <div class="quick-tile">
+        <div class="tile-icon">📅</div>
+        <div class="tile-title">Planting Calendar</div>
+        <div class="tile-sub">June · Holly Springs</div>
+      </div>
+      <div class="quick-tile">
+        <div class="tile-icon">📖</div>
+        <div class="tile-title">Encyclopedia</div>
+        <div class="tile-sub">1,000+ plants</div>
+      </div>
+    </div>
+
+    <div class="section-label">My plants</div>
+    <div class="my-plants-row">
+      <div class="plant-chip">
+        <span class="plant-chip-emoji">🍅</span>
+        <div>
+          <div class="plant-chip-name">Tomatoes</div>
+          <span class="plant-chip-status">On track</span>
+        </div>
+      </div>
+      <div class="plant-chip">
+        <span class="plant-chip-emoji">🌿</span>
+        <div>
+          <div class="plant-chip-name">Basil</div>
+          <span class="plant-chip-status warn">Water now</span>
+        </div>
+      </div>
+      <div class="plant-chip">
+        <span class="plant-chip-emoji">🥕</span>
+        <div>
+          <div class="plant-chip-name">Carrots</div>
+          <span class="plant-chip-status">On track</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Today</div>
+    <div class="reminder-row">
+      <div class="reminder-dot"></div>
+      <div class="reminder-text">Water basil and cherry tomatoes</div>
+      <div class="reminder-time">Now</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <div class="nav-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><path d="M3 9.5L11 3l8 6.5V19a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="#5A8A5A" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" stroke="#C0BDB8" stroke-width="1.5"/><path d="M11 7v4l3 3" stroke="#C0BDB8" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Journal</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="3" stroke="#C0BDB8" stroke-width="1.5"/><path d="M7 11h8M7 7h8M7 15h5" stroke="#C0BDB8" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Encyclopedia</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="8" r="4" stroke="#C0BDB8" stroke-width="1.5"/><path d="M3 19c0-4 3.6-7 8-7s8 3 8 7" stroke="#C0BDB8" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Profile</span>
+    </div>
+  </div>
+</div>
