@@ -1,40 +1,64 @@
-export const handler = async function(event, context) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+export const handler = async function (event) {
+  // Handle CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: "",
+    };
   }
 
-  try {
-    const { messages, systemPrompt, model } = JSON.parse(event.body);
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method not allowed" };
+  }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+  const CORS = { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" };
+
+  try {
+    // Netlify sometimes base64-encodes the body
+    const rawBody = event.isBase64Encoded
+      ? Buffer.from(event.body, "base64").toString("utf8")
+      : event.body;
+
+    const { messages, systemPrompt, model } = JSON.parse(rawBody);
+
+    if (!messages || !Array.isArray(messages)) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "messages array required" }) };
+    }
+
+    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        // Allow caller to request sonnet for diagnosis, default to haiku for chat
-        model: model || 'claude-haiku-4-5',
-        max_tokens: 1000,
+        model: model || "claude-haiku-4-5",
+        max_tokens: 1024,
         system: systemPrompt,
         messages,
       }),
     });
 
-    const data = await response.json();
+    const data = await anthropicRes.json();
+
+    // Forward the exact status from Anthropic so the frontend can detect errors
     return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      statusCode: anthropicRes.status,
+      headers: CORS,
       body: JSON.stringify(data),
     };
   } catch (err) {
+    console.error("Advisor function error:", err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: { message: err.message } }),
+      headers: CORS,
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };

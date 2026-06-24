@@ -97,6 +97,16 @@ function useClockTime() {
   return time;
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 480);
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth <= 480);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
+  return isMobile;
+}
+
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 function QuickCard({ icon, title, subtitle, accent, onClick }) {
@@ -181,7 +191,7 @@ function BottomNav({ activeTab, onTabChange }) {
     { id: "profile",      label: "Profile", Icon: ProfileIcon },
   ];
   return (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "72px", background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, borderRadius: "0 0 28px 28px" }}>
+    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, borderRadius: "0 0 28px 28px", paddingBottom: "env(safe-area-inset-bottom)" }}>
       {tabs.map(({ id, label, Icon }) => {
         const active = activeTab === id;
         return (
@@ -219,7 +229,8 @@ export default function App() {
   const [subView,     setSubView]     = useState(null);
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const time = useClockTime();
+  const time     = useClockTime();
+  const isMobile = useIsMobile();
 
   const handleUnlock = () => { unlockPremium(); setShowPaywall(false); };
 
@@ -248,9 +259,8 @@ export default function App() {
   // Show onboarding for new users
   if (!onboarded) {
     return (
-      <div style={{ minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
-        <div style={{ width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={isMobile ? { height: "100dvh", background: "#F7F5F2", display: "flex", flexDirection: "column" } : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={isMobile ? { flex: 1, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" } : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
           <Onboarding />
         </div>
       </div>
@@ -320,13 +330,21 @@ export default function App() {
     }
   };
 
-  return (
-    <div style={{ minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
-      <div style={{ width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
+  const outerStyle = isMobile
+    ? { height: "100dvh", background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
+    : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
 
-        {/* Status bar */}
-        <div style={{ height: "44px", background: "#F7F5F2", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
+  const shellStyle = isMobile
+    ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", paddingTop: "env(safe-area-inset-top)" }
+    : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" };
+
+  return (
+    <div style={outerStyle}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+      <div style={shellStyle}>
+
+        {/* Status bar — desktop mockup only */}
+        {!isMobile && <div style={{ height: "44px", background: "#F7F5F2", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
           <span style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}>{time}</span>
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <svg width="16" height="12" viewBox="0 0 16 12" fill="#1A1A1A">
@@ -338,7 +356,7 @@ export default function App() {
               <path d="M20 4v4a2 2 0 000-4z" fill="#1A1A1A" opacity="0.4"/>
             </svg>
           </div>
-        </div>
+        </div>}
 
         {/* App header */}
         <div style={{ padding: "4px 20px 12px", background: "#F7F5F2", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, borderBottom: subView ? "none" : "1px solid #ECEAE6" }}>
@@ -352,7 +370,7 @@ export default function App() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", paddingBottom: "72px" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}>
           {renderContent()}
         </div>
 

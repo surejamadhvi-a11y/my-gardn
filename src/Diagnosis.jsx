@@ -80,6 +80,24 @@ function HealthBadge({ health }) {
   );
 }
 
+function compressImage(dataUrl, maxPx = 1200, quality = 0.82) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxPx || height > maxPx) {
+        if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+        else                { width = Math.round(width * maxPx / height); height = maxPx; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 export default function Diagnosis({ userProfile, onBack, onDiagnosisAttempt }) {
   const [phase, setPhase] = useState("upload"); // upload | analyzing | results | error
   const [imagePreview, setImagePreview] = useState(null);
@@ -94,11 +112,12 @@ export default function Diagnosis({ userProfile, onBack, onDiagnosisAttempt }) {
     if (!file) return;
     setImageMime(file.type || "image/jpeg");
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
       setImagePreview(dataUrl);
-      // Strip the data URL prefix to get raw base64
-      setImageBase64(dataUrl.split(",")[1]);
+      const compressed = await compressImage(dataUrl);
+      setImageBase64(compressed.split(",")[1]);
+      setImageMime("image/jpeg");
     };
     reader.readAsDataURL(file);
   }
