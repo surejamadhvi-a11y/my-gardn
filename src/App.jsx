@@ -331,8 +331,8 @@ export default function App() {
   };
 
   const outerStyle = isMobile
-    ? { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
-    : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
+    ? { minHeight: "100dvh", background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
+    : { minHeight: "100dvh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
 
   const shellStyle = isMobile
     ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", paddingTop: "env(safe-area-inset-top)" }
