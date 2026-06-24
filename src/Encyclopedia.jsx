@@ -1,86 +1,122 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useGarden } from "./GardenContext"
 
-// Unsplash keyword overrides for plants where the common name needs help
-const IMG_KW = {
-  "Pak Choi":                    "bok+choy,asian+vegetable",
-  "Jerusalem Artichoke":         "jerusalem+artichoke,sunchoke",
-  "Sweet Potatoes":              "sweet+potato,orange+root",
-  "Spring Onions":               "spring+onion,scallion+green",
-  "Sugar Snap Peas":             "snap+peas,green+pods",
-  "Runner Beans":                "runner+beans,climbing+beans",
-  "French Beans":                "green+beans,string+beans",
-  "Broad Beans":                 "fava+beans,broad+beans",
-  "Edamame":                     "edamame,soybean+pods",
-  "Sweetcorn":                   "corn,maize+crop",
-  "Butternut Squash":            "butternut+squash,orange+squash",
-  "Bell Peppers":                "bell+pepper,colorful+peppers",
-  "Chili Peppers":               "chili+pepper,red+hot+pepper",
-  "Brussels Sprouts":            "brussels+sprout,green+brassica",
-  "Swiss Chard":                 "rainbow+chard,colorful+stems",
-  "Savoy Cabbage":               "savoy+cabbage,crinkled+green",
-  "Dwarf Apple":                 "apple+tree,red+apple+harvest",
-  "Dwarf Pear":                  "pear+tree,green+pears",
-  "Container Lemon":             "lemon+tree,yellow+citrus",
-  "Container Lime":              "lime+tree,green+citrus",
-  "Container Orange":            "orange+tree,citrus+fruit",
-  "Red Currants":                "redcurrant,red+berries+cluster",
-  "Black Currants":              "blackcurrant,black+berries",
-  "Goji Berries":                "goji+berry,red+wolfberries",
-  "Physalis":                    "cape+gooseberry,physalis+lantern",
-  "Holy Basil / Tulsi":          "tulsi+basil,holy+basil+herb",
-  "Thai Basil":                  "thai+basil,purple+stem+basil",
-  "Lemon Balm":                  "lemon+balm,melissa+herb+leaves",
-  "Bay Laurel":                  "bay+laurel,bay+leaf+tree",
-  "Garlic Chives":               "garlic+chives,chinese+chives+white+flower",
-  "Vietnamese Coriander":        "coriander+herb,green+herb+leaves",
-  "Stevia":                      "stevia+plant,sweet+leaf+herb",
-  "Hyssop":                      "hyssop+blue+flower,herb+flowers",
-  "Valerian":                    "valerian+flower,white+pink+flower+herb",
-  "Feverfew":                    "feverfew+daisy,white+daisy+herb",
-  "Catnip":                      "catnip+plant,nepeta+herb",
-  "Lemon Verbena":               "lemon+verbena,lemon+herb+leaves",
-  "Lovage":                      "lovage+herb,tall+herb+garden",
-  "Love in a Mist":              "nigella+flower,blue+nigella+bloom",
-  "Monarda / Bee Balm":          "bee+balm+flower,monarda+red",
-  "Achillea / Yarrow":           "yarrow+flower,achillea+yellow",
-  "Kniphofia / Red Hot Poker":   "red+hot+poker,kniphofia+orange",
-  "Stachys / Lamb's Ear":        "lambs+ear+plant,silver+grey+leaves",
-  "Liatris / Blazing Star":      "liatris+purple,blazing+star+flower",
-  "Platycodon / Balloon Flower": "balloon+flower,platycodon+blue",
-  "Echinops / Globe Thistle":    "globe+thistle,echinops+blue+ball",
-  "Tithonia / Mexican Sunflower":"mexican+sunflower,tithonia+orange",
-  "Cleome / Spider Flower":      "spider+flower,cleome+pink",
-  "Aquilegia / Columbine":       "columbine+flower,aquilegia+purple",
-  "Digitalis (Foxglove)":        "foxglove+flower,digitalis+pink",
-  "Geranium (Hardy)":            "hardy+geranium,cranesbill+purple",
-  "Begonia (Tuberous)":          "tuberous+begonia,bright+begonia+flower",
-  "Thalictrum":                  "thalictrum+flower,meadow+rue+purple",
-  "Veronicastrum":               "veronicastrum+spire,white+flower+spike",
-  "Globe Amaranth":              "gomphrena+flower,globe+amaranth+purple",
-  "Nigella":                     "nigella+damascena,love+in+mist",
-  "Lisianthus":                  "lisianthus+flower,eustoma+purple",
-  "Scabiosa":                    "scabiosa+flower,pincushion+flower",
-  "Heuchera":                    "heuchera+foliage,coral+bells+leaves",
-  "Erigeron":                    "erigeron+daisy,fleabane+purple",
-  "Hollyhocks":                  "hollyhock+flower,tall+pink+flower",
-  "Rudbeckia":                   "rudbeckia+flower,black+eyed+susan",
-  "Gaillardia":                  "gaillardia+flower,blanket+flower+red",
-  "Helenium":                    "helenium+flower,sneezeweed+yellow",
-  "Gerbera Daisy":               "gerbera+daisy,colorful+gerbera",
-  "Agapanthus":                  "agapanthus+blue,lily+of+the+nile",
-  "Statice":                     "statice+flower,limonium+purple+dried",
-  "Alliums":                     "allium+flower,purple+globe+flower",
-  "Sweet Peas":                  "sweet+pea+flower,climbing+pink+flower",
-  "Baby's Breath":               "baby+breath+flower,gypsophila+white",
+// iNaturalist scientific name hints for plants where common name is ambiguous
+const INAT_NAME = {
+  "Pak Choi":                    "brassica rapa chinensis",
+  "Jerusalem Artichoke":         "helianthus tuberosus",
+  "Swiss Chard":                 "beta vulgaris cicla",
+  "Sweetcorn":                   "zea mays",
+  "Butternut Squash":            "cucurbita moschata",
+  "Sugar Snap Peas":             "pisum sativum",
+  "Runner Beans":                "phaseolus coccineus",
+  "French Beans":                "phaseolus vulgaris",
+  "Broad Beans":                 "vicia faba",
+  "Savoy Cabbage":               "brassica oleracea sabauda",
+  "Dwarf Apple":                 "malus domestica",
+  "Dwarf Pear":                  "pyrus communis",
+  "Container Lemon":             "citrus limon",
+  "Container Lime":              "citrus aurantiifolia",
+  "Container Orange":            "citrus sinensis",
+  "Red Currants":                "ribes rubrum",
+  "Black Currants":              "ribes nigrum",
+  "Goji Berries":                "lycium barbarum",
+  "Physalis":                    "physalis peruviana",
+  "Holy Basil / Tulsi":          "ocimum tenuiflorum",
+  "Thai Basil":                  "ocimum basilicum",
+  "Lemon Balm":                  "melissa officinalis",
+  "Bay Laurel":                  "laurus nobilis",
+  "Garlic Chives":               "allium tuberosum",
+  "Vietnamese Coriander":        "persicaria odorata",
+  "Lemon Verbena":               "aloysia citrodora",
+  "Catnip":                      "nepeta cataria",
+  "Valerian":                    "valeriana officinalis",
+  "Feverfew":                    "tanacetum parthenium",
+  "Hyssop":                      "hyssopus officinalis",
+  "Love in a Mist":              "nigella damascena",
+  "Monarda / Bee Balm":          "monarda didyma",
+  "Achillea / Yarrow":           "achillea millefolium",
+  "Kniphofia / Red Hot Poker":   "kniphofia uvaria",
+  "Stachys / Lamb's Ear":        "stachys byzantina",
+  "Liatris / Blazing Star":      "liatris spicata",
+  "Platycodon / Balloon Flower": "platycodon grandiflorus",
+  "Echinops / Globe Thistle":    "echinops ritro",
+  "Tithonia / Mexican Sunflower":"tithonia rotundifolia",
+  "Cleome / Spider Flower":      "cleome hassleriana",
+  "Aquilegia / Columbine":       "aquilegia vulgaris",
+  "Digitalis (Foxglove)":        "digitalis purpurea",
+  "Geranium (Hardy)":            "geranium pratense",
+  "Begonia (Tuberous)":          "begonia",
+  "Alliums":                     "allium giganteum",
+  "Sweet Peas":                  "lathyrus odoratus",
+  "Baby's Breath":               "gypsophila paniculata",
+  "Statice":                     "limonium sinuatum",
+  "Globe Amaranth":              "gomphrena globosa",
+  "Lisianthus":                  "eustoma grandiflorum",
+  "Nigella":                     "nigella damascena",
+  "Scabiosa":                    "scabiosa columbaria",
+  "Heuchera":                    "heuchera micrantha",
+  "Erigeron":                    "erigeron karvinskianus",
+  "Rudbeckia":                   "rudbeckia hirta",
+  "Gaillardia":                  "gaillardia pulchella",
+  "Helenium":                    "helenium autumnale",
+  "Gerbera Daisy":               "gerbera jamesonii",
+  "Agapanthus":                  "agapanthus africanus",
+  "Catmint":                     "nepeta racemosa",
+  "Veronicastrum":               "veronicastrum virginicum",
+  "Thalictrum":                  "thalictrum aquilegiifolium",
+  "Hollyhocks":                  "alcea rosea",
 }
 
-function plantImgSrc(plant) {
-  const kw = IMG_KW[plant.name]
-  if (kw) return `https://source.unsplash.com/400x300/?${kw}`
-  const base = plant.name.split(/\s*[/()]\s*/)[0].trim().toLowerCase().replace(/\s+/g, "+")
-  const suffix = plant.category === "Flowers" ? ",flower,bloom,garden" : ",plant,vegetable,garden"
-  return `https://source.unsplash.com/400x300/?${base}${suffix}`
+function plantSearchTerm(plant) {
+  return INAT_NAME[plant.name] || plant.name.split(/\s*[/(]\s*/)[0].trim()
+}
+
+function useInatPhotos(plants) {
+  const [photos, setPhotos] = useState(() => {
+    const initial = {}
+    for (const p of plants) {
+      const v = sessionStorage.getItem(`inat_${p.name}`)
+      if (v && v !== "err") initial[p.name] = v
+    }
+    return initial
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    const toFetch = plants.filter(p => !sessionStorage.getItem(`inat_${p.name}`))
+    if (!toFetch.length) return
+
+    const CONCURRENCY = 6
+    let idx = 0
+
+    async function worker() {
+      while (idx < toFetch.length) {
+        if (cancelled) return
+        const plant = toFetch[idx++]
+        try {
+          const q = encodeURIComponent(plantSearchTerm(plant))
+          const r = await fetch(
+            `https://api.inaturalist.org/v1/taxa?q=${q}&per_page=5&rank=species,subspecies,variety,form&iconic_taxa=Plantae&order_by=observations_count`
+          )
+          const d = await r.json()
+          let url = ""
+          for (const t of (d.results || [])) {
+            if (t.default_photo?.medium_url) { url = t.default_photo.medium_url; break }
+          }
+          sessionStorage.setItem(`inat_${plant.name}`, url || "err")
+          if (url && !cancelled) setPhotos(prev => ({ ...prev, [plant.name]: url }))
+        } catch {
+          sessionStorage.setItem(`inat_${plant.name}`, "err")
+        }
+      }
+    }
+
+    Promise.all(Array.from({ length: CONCURRENCY }, worker))
+    return () => { cancelled = true }
+  }, [])
+
+  return photos
 }
 
 const plants = [
@@ -345,16 +381,18 @@ function plantEmoji(plant) {
 }
 const difficultyColor = { Easy:"#5A8A5A", Moderate:"#E9A84C", Hard:"#D96B6B" }
 
-function PlantImage({ plant, height, radius }) {
+function PlantImage({ plant, height, radius, photoUrl }) {
   return (
     <div style={{ width:"100%", height, background:plantColor(plant.name), display:"flex", alignItems:"center", justifyContent:"center", fontSize: height > 120 ? 56 : 32, borderRadius: radius || 0, overflow:"hidden", position:"relative", flexShrink:0 }}>
       <span style={{ position:"absolute", zIndex:1 }}>{plantEmoji(plant)}</span>
-      <img
-        src={plantImgSrc(plant)}
-        alt={plant.name}
-        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:2 }}
-        onError={e => { e.target.style.display = "none" }}
-      />
+      {photoUrl && (
+        <img
+          src={photoUrl}
+          alt={plant.name}
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:2 }}
+          onError={e => { e.target.style.display = "none" }}
+        />
+      )}
     </div>
   )
 }
@@ -365,6 +403,7 @@ export default function Encyclopedia() {
   const [activeTab, setActiveTab]         = useState("All")
   const [selectedPlant, setSelectedPlant] = useState(null)
   const [justAdded, setJustAdded]         = useState(null)
+  const photos = useInatPhotos(plants)
 
   function handleAddToGarden(plant) {
     addPlant({
@@ -420,7 +459,7 @@ export default function Encyclopedia() {
       <div style={{ padding:"0 24px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
         {filtered.map(plant => (
           <div key={plant.id} onClick={() => setSelectedPlant(plant)} style={{ background:"#fff", borderRadius:"18px", overflow:"hidden", border:"1px solid rgba(0,0,0,0.05)", cursor:"pointer" }}>
-            <PlantImage plant={plant} height={110} />
+            <PlantImage plant={plant} height={110} photoUrl={photos[plant.name]} />
             <div style={{ padding:"10px 12px" }}>
               <div style={{ fontSize:"13px", fontWeight:600, color:"#1a1a1a", marginBottom:"4px" }}>{plant.name}</div>
               <div style={{ fontSize:"10px", color:"#9A9690", marginBottom:"2px" }}>{plant.sun}</div>
@@ -440,7 +479,7 @@ export default function Encyclopedia() {
         <div onClick={() => setSelectedPlant(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
           <div onClick={e => e.stopPropagation()} style={{ background:"#F7F5F2", borderRadius:"24px 24px 0 0", width:"100%", maxWidth:"390px", maxHeight:"88vh", overflowY:"auto", paddingBottom:"40px" }}>
 
-            <PlantImage plant={selectedPlant} height={200} radius="24px 24px 0 0" />
+            <PlantImage plant={selectedPlant} height={200} radius="24px 24px 0 0" photoUrl={photos[selectedPlant.name]} />
 
             <div style={{ padding:"20px 24px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"16px" }}>

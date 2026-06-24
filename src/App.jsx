@@ -191,7 +191,7 @@ function BottomNav({ activeTab, onTabChange }) {
     { id: "profile",      label: "Profile", Icon: ProfileIcon },
   ];
   return (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, borderRadius: "0 0 28px 28px", paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <div style={{ background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, borderRadius: "0 0 28px 28px", paddingBottom: "env(safe-area-inset-bottom)", flexShrink: 0 }}>
       {tabs.map(({ id, label, Icon }) => {
         const active = activeTab === id;
         return (
@@ -335,7 +335,7 @@ export default function App() {
     : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
 
   const shellStyle = isMobile
-    ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", paddingTop: "env(safe-area-inset-top)" }
+    ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", paddingTop: "env(safe-area-inset-top)" }
     : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" };
 
   return (
@@ -370,7 +370,7 @@ export default function App() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
           {renderContent()}
         </div>
 
