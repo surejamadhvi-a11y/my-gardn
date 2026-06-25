@@ -98,13 +98,7 @@ function useClockTime() {
 }
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 480);
-  useEffect(() => {
-    const fn = () => setIsMobile(window.innerWidth <= 480);
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
-  }, []);
-  return isMobile;
+  return true;
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -331,12 +325,12 @@ export default function App() {
   };
 
   const outerStyle = isMobile
-    ? { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#F7F5F2", display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }
-    : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
+  ? { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#F7F5F2", display: "flex", flexDirection: "column" }
+  : { minHeight: "100vh", background: "#E8E5DF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" };
 
-  const shellStyle = isMobile
-    ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", paddingTop: "env(safe-area-inset-top)" }
-    : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" };
+const shellStyle = isMobile
+  ? { flex: 1, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }
+  : { width: "100%", maxWidth: "390px", height: "calc(100vh - 64px)", minHeight: "600px", background: "#F7F5F2", borderRadius: "44px", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" };
 
   return (
     <div style={outerStyle}>
