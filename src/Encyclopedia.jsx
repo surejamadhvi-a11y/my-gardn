@@ -1,117 +1,27 @@
 import { useState, useEffect } from "react"
 import { useGarden } from "./GardenContext"
 
-// iNaturalist scientific name hints for plants where common name is ambiguous
-const INAT_NAME = {
-  "Cherry Tomatoes":             "solanum lycopersicum",
-  "Beefsteak Tomatoes":          "solanum lycopersicum",
-  "Lettuce":                     "lactuca sativa",
-  "Spinach":                     "spinacia oleracea",
-  "Kale":                        "brassica oleracea acephala",
-  "Basil":                       "ocimum basilicum",
-  "Mint":                        "mentha",
-  "Rosemary":                    "salvia rosmarinus",
-  "Sunflowers":                  "helianthus annuus",
-  "Lavender":                    "lavandula angustifolia",
-  "Marigolds":                   "tagetes",
-  "Roses":                       "rosa",
-  "Strawberries":                "fragaria ananassa",
-  "Tomatoes":                    "solanum lycopersicum",
-  "Cucumber":                    "cucumis sativus",
-  "Zucchini":                    "cucurbita pepo",
-  "Garlic":                      "allium sativum",
-  "Chives":                      "allium schoenoprasum",
-  "Thyme":                       "thymus vulgaris",
-  "Cilantro":                    "coriandrum sativum",
-  "Parsley":                     "petroselinum crispum",
-  "Dill":                        "anethum graveolens",
-  "Sage":                        "salvia officinalis",
-  "Oregano":                     "origanum vulgare",
-  "Pak Choi":                    "brassica rapa chinensis",
-  "Jerusalem Artichoke":         "helianthus tuberosus",
-  "Swiss Chard":                 "beta vulgaris cicla",
-  "Sweetcorn":                   "zea mays",
-  "Butternut Squash":            "cucurbita moschata",
-  "Sugar Snap Peas":             "pisum sativum",
-  "Runner Beans":                "phaseolus coccineus",
-  "French Beans":                "phaseolus vulgaris",
-  "Broad Beans":                 "vicia faba",
-  "Savoy Cabbage":               "brassica oleracea sabauda",
-  "Dwarf Apple":                 "malus domestica",
-  "Dwarf Pear":                  "pyrus communis",
-  "Container Lemon":             "citrus limon",
-  "Container Lime":              "citrus aurantiifolia",
-  "Container Orange":            "citrus sinensis",
-  "Red Currants":                "ribes rubrum",
-  "Black Currants":              "ribes nigrum",
-  "Goji Berries":                "lycium barbarum",
-  "Physalis":                    "physalis peruviana",
-  "Holy Basil / Tulsi":          "ocimum tenuiflorum",
-  "Thai Basil":                  "ocimum basilicum",
-  "Lemon Balm":                  "melissa officinalis",
-  "Bay Laurel":                  "laurus nobilis",
-  "Garlic Chives":               "allium tuberosum",
-  "Vietnamese Coriander":        "persicaria odorata",
-  "Lemon Verbena":               "aloysia citrodora",
-  "Catnip":                      "nepeta cataria",
-  "Valerian":                    "valeriana officinalis",
-  "Feverfew":                    "tanacetum parthenium",
-  "Hyssop":                      "hyssopus officinalis",
-  "Love in a Mist":              "nigella damascena",
-  "Monarda / Bee Balm":          "monarda didyma",
-  "Achillea / Yarrow":           "achillea millefolium",
-  "Kniphofia / Red Hot Poker":   "kniphofia uvaria",
-  "Stachys / Lamb's Ear":        "stachys byzantina",
-  "Liatris / Blazing Star":      "liatris spicata",
-  "Platycodon / Balloon Flower": "platycodon grandiflorus",
-  "Echinops / Globe Thistle":    "echinops ritro",
-  "Tithonia / Mexican Sunflower":"tithonia rotundifolia",
-  "Cleome / Spider Flower":      "cleome hassleriana",
-  "Aquilegia / Columbine":       "aquilegia vulgaris",
-  "Digitalis (Foxglove)":        "digitalis purpurea",
-  "Geranium (Hardy)":            "geranium pratense",
-  "Begonia (Tuberous)":          "begonia",
-  "Alliums":                     "allium giganteum",
-  "Sweet Peas":                  "lathyrus odoratus",
-  "Baby's Breath":               "gypsophila paniculata",
-  "Statice":                     "limonium sinuatum",
-  "Globe Amaranth":              "gomphrena globosa",
-  "Lisianthus":                  "eustoma grandiflorum",
-  "Nigella":                     "nigella damascena",
-  "Scabiosa":                    "scabiosa columbaria",
-  "Heuchera":                    "heuchera micrantha",
-  "Erigeron":                    "erigeron karvinskianus",
-  "Rudbeckia":                   "rudbeckia hirta",
-  "Gaillardia":                  "gaillardia pulchella",
-  "Helenium":                    "helenium autumnale",
-  "Gerbera Daisy":               "gerbera jamesonii",
-  "Agapanthus":                  "agapanthus africanus",
-  "Catmint":                     "nepeta racemosa",
-  "Veronicastrum":               "veronicastrum virginicum",
-  "Thalictrum":                  "thalictrum aquilegiifolium",
-  "Hollyhocks":                  "alcea rosea",
-}
-
-function plantSearchTerm(plant) {
-  return INAT_NAME[plant.name] || plant.name.split(/\s*[/(]\s*/)[0].trim()
-}
-
-function useInatPhotos(plants) {
-  const [photos, setPhotos] = useState(() => {
+function usePlantPhotos(plants) {
+  const [data, setData] = useState(() => {
     const initial = {}
     for (const p of plants) {
-      const v = sessionStorage.getItem(`inat_${p.name}`)
-      if (v && v !== "err") initial[p.name] = v
+      const v = sessionStorage.getItem(`perenual_${p.name}`)
+      if (v && v !== "err") {
+        try { initial[p.name] = JSON.parse(v) } catch {}
+      }
     }
     return initial
   })
 
   useEffect(() => {
+    const apiKey = import.meta.env.VITE_PERENUAL_API_KEY
+    if (!apiKey) return
+
     let cancelled = false
-    const toFetch = plants.filter(p => !sessionStorage.getItem(`inat_${p.name}`))
+    const toFetch = plants.filter(p => !sessionStorage.getItem(`perenual_${p.name}`))
     if (!toFetch.length) return
 
-    const CONCURRENCY = 6
+    const CONCURRENCY = 4
     let idx = 0
 
     async function worker() {
@@ -119,19 +29,27 @@ function useInatPhotos(plants) {
         if (cancelled) return
         const plant = toFetch[idx++]
         try {
-          const q = encodeURIComponent(plantSearchTerm(plant))
+          const q = encodeURIComponent(plant.name)
           const r = await fetch(
-            `https://api.inaturalist.org/v1/taxa?q=${q}&per_page=5&rank=species,subspecies,variety,form&iconic_taxa=Plantae&order_by=observations_count`
+            `https://perenual.com/api/species-list?key=${apiKey}&q=${q}`
           )
-          const d = await r.json()
-          let url = ""
-          for (const t of (d.results || [])) {
-            if (t.default_photo?.medium_url) { url = t.default_photo.medium_url; break }
+          const json = await r.json()
+          const item = json.data?.[0]
+          if (item) {
+            const result = {
+              photoUrl:  item.default_image?.medium_url || "",
+              toxicity:  item.poisonous_to_pets,
+              watering:  item.watering,
+              pests:     item.pest_susceptibility,
+              careLevel: item.care_level,
+            }
+            sessionStorage.setItem(`perenual_${plant.name}`, JSON.stringify(result))
+            if (!cancelled) setData(prev => ({ ...prev, [plant.name]: result }))
+          } else {
+            sessionStorage.setItem(`perenual_${plant.name}`, "err")
           }
-          sessionStorage.setItem(`inat_${plant.name}`, url || "err")
-          if (url && !cancelled) setPhotos(prev => ({ ...prev, [plant.name]: url }))
         } catch {
-          sessionStorage.setItem(`inat_${plant.name}`, "err")
+          sessionStorage.setItem(`perenual_${plant.name}`, "err")
         }
       }
     }
@@ -140,7 +58,7 @@ function useInatPhotos(plants) {
     return () => { cancelled = true }
   }, [])
 
-  return photos
+  return data
 }
 
 const plants = [
@@ -427,7 +345,7 @@ export default function Encyclopedia() {
   const [activeTab, setActiveTab]         = useState("All")
   const [selectedPlant, setSelectedPlant] = useState(null)
   const [justAdded, setJustAdded]         = useState(null)
-  const photos = useInatPhotos(plants)
+  const careData = usePlantPhotos(plants)
 
   function handleAddToGarden(plant) {
     addPlant({
@@ -483,7 +401,7 @@ export default function Encyclopedia() {
       <div style={{ padding:"0 24px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
         {filtered.map(plant => (
           <div key={plant.id} onClick={() => setSelectedPlant(plant)} style={{ background:"#fff", borderRadius:"18px", overflow:"hidden", border:"1px solid rgba(0,0,0,0.05)", cursor:"pointer" }}>
-            <PlantImage plant={plant} height={110} photoUrl={photos[plant.name]} />
+            <PlantImage plant={plant} height={110} photoUrl={careData[plant.name]?.photoUrl} />
             <div style={{ padding:"10px 12px" }}>
               <div style={{ fontSize:"13px", fontWeight:600, color:"#1a1a1a", marginBottom:"4px" }}>{plant.name}</div>
               <div style={{ fontSize:"10px", color:"#9A9690", marginBottom:"2px" }}>{plant.sun}</div>
@@ -503,7 +421,7 @@ export default function Encyclopedia() {
         <div onClick={() => setSelectedPlant(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
           <div onClick={e => e.stopPropagation()} style={{ background:"#F7F5F2", borderRadius:"24px 24px 0 0", width:"100%", maxWidth:"390px", maxHeight:"88vh", overflowY:"auto", paddingBottom:"40px" }}>
 
-            <PlantImage plant={selectedPlant} height={200} radius="24px 24px 0 0" photoUrl={photos[selectedPlant.name]} />
+            <PlantImage plant={selectedPlant} height={200} radius="24px 24px 0 0" photoUrl={careData[selectedPlant.name]?.photoUrl} />
 
             <div style={{ padding:"20px 24px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"16px" }}>
@@ -514,23 +432,53 @@ export default function Encyclopedia() {
                 <div onClick={() => setSelectedPlant(null)} style={{ width:"32px", height:"32px", borderRadius:"50%", background:"#EEECEA", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:"14px", color:"#9A9690", flexShrink:0 }}>✕</div>
               </div>
 
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"10px", marginBottom:"20px" }}>
-                {[
-                  { label:"Difficulty", value: selectedPlant.difficulty, color: difficultyColor[selectedPlant.difficulty] },
-                  { label:"Harvest",    value: selectedPlant.harvest,    color:"#1a1a1a" },
-                  { label:"Sun",        value: selectedPlant.sun,        color:"#1a1a1a" },
-                ].map(stat => (
-                  <div key={stat.label} style={{ background:"#fff", borderRadius:"14px", padding:"12px 10px", border:"1px solid rgba(0,0,0,0.05)" }}>
-                    <div style={{ fontSize:"10px", color:"#B0ADA8", fontWeight:500, marginBottom:"6px", textTransform:"uppercase", letterSpacing:"0.04em" }}>{stat.label}</div>
-                    <div style={{ fontSize:"12px", fontWeight:600, color:stat.color, lineHeight:1.3 }}>{stat.value}</div>
-                  </div>
-                ))}
-              </div>
+              {(() => {
+                const cd = careData[selectedPlant.name]
+                const difficulty = cd?.careLevel || selectedPlant.difficulty
+                return (
+                  <>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"10px", marginBottom:"20px" }}>
+                      {[
+                        { label:"Difficulty", value: difficulty, color: difficultyColor[difficulty] || difficultyColor[selectedPlant.difficulty] },
+                        { label:"Harvest",    value: selectedPlant.harvest, color:"#1a1a1a" },
+                        { label:"Sun",        value: selectedPlant.sun,     color:"#1a1a1a" },
+                      ].map(stat => (
+                        <div key={stat.label} style={{ background:"#fff", borderRadius:"14px", padding:"12px 10px", border:"1px solid rgba(0,0,0,0.05)" }}>
+                          <div style={{ fontSize:"10px", color:"#B0ADA8", fontWeight:500, marginBottom:"6px", textTransform:"uppercase", letterSpacing:"0.04em" }}>{stat.label}</div>
+                          <div style={{ fontSize:"12px", fontWeight:600, color:stat.color, lineHeight:1.3 }}>{stat.value}</div>
+                        </div>
+                      ))}
+                    </div>
 
-              <div style={{ background:"#fff", borderRadius:"14px", padding:"14px 16px", marginBottom:"14px", border:"1px solid rgba(0,0,0,0.05)" }}>
-                <div style={{ fontSize:"11px", color:"#B0ADA8", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Best Location</div>
-                <div style={{ fontSize:"13px", color:"#1a1a1a", fontWeight:500 }}>{selectedPlant.location}</div>
-              </div>
+                    <div style={{ background:"#fff", borderRadius:"14px", padding:"14px 16px", marginBottom:"14px", border:"1px solid rgba(0,0,0,0.05)" }}>
+                      <div style={{ fontSize:"11px", color:"#B0ADA8", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Best Location</div>
+                      <div style={{ fontSize:"13px", color:"#1a1a1a", fontWeight:500 }}>{selectedPlant.location}</div>
+                    </div>
+
+                    {cd && (cd.toxicity !== undefined || cd.watering || (cd.pests && cd.pests.length > 0)) && (
+                      <div style={{ background:"#fff", borderRadius:"14px", padding:"14px 16px", marginBottom:"14px", border:"1px solid rgba(0,0,0,0.05)" }}>
+                        <div style={{ fontSize:"11px", color:"#B0ADA8", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"10px" }}>Care Info</div>
+                        {cd.toxicity !== undefined && (
+                          <div style={{ display:"inline-block", padding:"4px 10px", borderRadius:"20px", fontSize:"11px", fontWeight:600, background: cd.toxicity ? "#FDECEA" : "#EAF2EA", color: cd.toxicity ? "#C62828" : "#2E7D32", marginBottom:"8px" }}>
+                            {cd.toxicity ? "⚠️ Toxic to pets" : "✓ Pet safe"}
+                          </div>
+                        )}
+                        {cd.watering && (
+                          <div style={{ fontSize:"13px", color:"#1a1a1a", marginBottom:"6px" }}>
+                            <span style={{ color:"#B0ADA8", fontWeight:500 }}>Watering: </span>{cd.watering}
+                          </div>
+                        )}
+                        {cd.pests && cd.pests.length > 0 && (
+                          <div style={{ fontSize:"13px", color:"#1a1a1a" }}>
+                            <span style={{ color:"#B0ADA8", fontWeight:500 }}>Pests: </span>
+                            {Array.isArray(cd.pests) ? cd.pests.join(", ") : cd.pests}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
 
               <div style={{ background:"#EEF4EE", borderRadius:"14px", padding:"14px 16px", border:"1px solid rgba(90,138,90,0.15)", marginBottom:"16px" }}>
                 <div style={{ fontSize:"11px", color:"#5A8A5A", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>🌱 Chemical-Free Tip</div>
