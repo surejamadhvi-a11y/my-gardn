@@ -185,7 +185,7 @@ function BottomNav({ activeTab, onTabChange }) {
     { id: "profile",      label: "Profile", Icon: ProfileIcon },
   ];
   return (
-    <div style={{ background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, borderRadius: "0 0 28px 28px", paddingBottom: "env(safe-area-inset-bottom)", flexShrink: 0 }}>
+    <div style={{ background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, paddingBottom: "env(safe-area-inset-bottom)", flexShrink: 0, minHeight: "60px" }}>
       {tabs.map(({ id, label, Icon }) => {
         const active = activeTab === id;
         return (
