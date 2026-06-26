@@ -24,10 +24,18 @@ export const handler = async function (event) {
       ? Buffer.from(event.body, "base64").toString("utf8")
       : event.body;
 
-    const { messages, systemPrompt, model } = JSON.parse(rawBody);
+    const { messages, plants, model } = JSON.parse(rawBody);
 
     if (!messages || !Array.isArray(messages)) {
       return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "messages array required" }) };
+    }
+
+    let systemPrompt;
+    if (plants && plants.length > 0) {
+      const plantList = plants.map(p => `${p.name} (${p.growthStage})`).join(", ");
+      systemPrompt = `You are a plant care assistant in the My Gardn app. The user is currently growing: ${plantList}. Give advice specific to their actual plants when relevant.`;
+    } else {
+      systemPrompt = "You are a helpful plant care assistant in the My Gardn app. Give practical, friendly advice about plant care, gardening, and growing.";
     }
 
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -38,7 +46,7 @@ export const handler = async function (event) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: model || "claude-haiku-4-5",
+        model: model || "claude-haiku-4-5-20251001",
         max_tokens: 1024,
         system: systemPrompt,
         messages,

@@ -8,6 +8,8 @@ import Paywall from "./Paywall";
 import Diagnosis from "./Diagnosis";
 import Onboarding from "./Onboarding";
 import { useGarden } from "./GardenContext";
+import MyPlants from "./components/MyPlants";
+import SplashScreen from "./components/SplashScreen";
 
 const MAX_FREE_AI_MESSAGES = 3;
 const MAX_FREE_DIAGNOSES   = 1;
@@ -136,53 +138,118 @@ function SubViewHeader({ title, onBack }) {
 }
 
 function HomeScreen({ onNavigate }) {
-  const { gardenPlants, todayReminders, streak, profile } = useGarden();
-  const today     = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-  const tasksToday = todayReminders.length;
-  const greeting  = getGreeting();
+  const { todayReminders, streak, profile } = useGarden();
+  const greeting = getGreeting();
+  const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const todayISO   = new Date().toISOString().split("T")[0];
+
+  const myPlants = (() => {
+    try { return JSON.parse(localStorage.getItem("myPlants") || "[]"); }
+    catch { return []; }
+  })();
+
+  const wateringTasks = myPlants.filter(p => p.nextWatering && p.nextWatering <= todayISO);
+  const totalTasks    = wateringTasks.length + todayReminders.length;
 
   const stats = [
-    { label: "PLANTS",     value: gardenPlants.length || 0 },
-    { label: "TASKS TODAY", value: tasksToday },
+    { label: "PLANTS",      value: myPlants.length || 0 },
+    { label: "TASKS TODAY", value: totalTasks },
     { label: "STREAK",      value: streak ? `${streak}d` : "—" },
   ];
 
+  const FONT = "'Inter', system-ui, sans-serif";
+
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 100px" }}>
+
+      {/* Greeting */}
       <div style={{ marginBottom: "24px" }}>
-        <p style={{ margin: "0 0 2px", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "12px", color: "#888", fontWeight: 500, letterSpacing: "0.03em", textTransform: "uppercase" }}>{today}</p>
-        <h1 style={{ margin: 0, fontFamily: "'Inter', system-ui, sans-serif", fontSize: "22px", fontWeight: 700, color: "#1A1A1A", lineHeight: 1.2 }}>{greeting} 🌿</h1>
-        <p style={{ margin: "4px 0 0", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "14px", color: "#888" }}>
+        <p style={{ margin: "0 0 2px", fontFamily: FONT, fontSize: "12px", color: "#888", fontWeight: 500, letterSpacing: "0.03em", textTransform: "uppercase" }}>{todayLabel}</p>
+        <h1 style={{ margin: 0, fontFamily: FONT, fontSize: "22px", fontWeight: 700, color: "#1A1A1A", lineHeight: 1.2 }}>{greeting} 🌿</h1>
+        <p style={{ margin: "4px 0 0", fontFamily: FONT, fontSize: "14px", color: "#888" }}>
           {profile?.name ? `What does ${profile.name}'s garden need today?` : "What does your garden need today?"}
         </p>
       </div>
 
+      {/* Stats bar */}
       <div style={{ background: "#5A8A5A", borderRadius: "16px", padding: "16px 18px", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {stats.map(({ label, value }, i) => (
           <div key={label} style={{ textAlign: i === 0 ? "left" : i === 2 ? "right" : "center" }}>
-            <p style={{ margin: 0, fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{label}</p>
-            <p style={{ margin: "2px 0 0", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "26px", fontWeight: 700, color: "#fff" }}>{value}</p>
+            <p style={{ margin: 0, fontFamily: FONT, fontSize: "11px", color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{label}</p>
+            <p style={{ margin: "2px 0 0", fontFamily: FONT, fontSize: "26px", fontWeight: 700, color: "#fff" }}>{value}</p>
           </div>
         ))}
       </div>
 
-      <p style={{ margin: "0 0 12px", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", fontWeight: 600, color: "#555", letterSpacing: "0.04em", textTransform: "uppercase" }}>Quick Actions</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        <QuickCard icon={<BotIcon />}        title="AI Advisor"       subtitle="Get personalised growing guidance"  accent="#EAF3DE" onClick={() => onNavigate("advisor")} />
-        <QuickCard icon={<MicroscopeIcon />} title="Diagnose a Plant"  subtitle="Upload a photo to identify issues"  accent="#EAF3DE" onClick={() => onNavigate("diagnosis")} />
-        <QuickCard icon={<BellIcon />}       title="Care Reminders"   subtitle="Stay on top of watering & feeding"  accent="#EAF3DE" onClick={() => onNavigate("reminders")} />
+      {/* Today's Tasks */}
+      <p style={{ margin: "0 0 12px", fontFamily: FONT, fontSize: "13px", fontWeight: 600, color: "#555", letterSpacing: "0.04em", textTransform: "uppercase" }}>Today's Tasks</p>
+
+      {totalTasks === 0 ? (
+        <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #ECEAE6", padding: "20px 16px", marginBottom: "24px", textAlign: "center" }}>
+          <p style={{ margin: 0, fontFamily: FONT, fontSize: "14px", color: "#888" }}>All caught up for today 🌱</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
+          {wateringTasks.map(plant => {
+            const overdue = plant.nextWatering < todayISO;
+            return (
+              <div key={plant.id} style={{ background: "#fff", borderRadius: "14px", border: `1px solid ${overdue ? "#FFCDD2" : "#ECEAE6"}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: overdue ? "#FFEBEE" : "#EAF2EA", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>💧</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontFamily: FONT, fontSize: "14px", fontWeight: 600, color: "#1A1A1A" }}>Water {plant.name}</p>
+                  <p style={{ margin: "2px 0 0", fontFamily: FONT, fontSize: "12px", color: overdue ? "#D96B6B" : "#5A8A5A" }}>{overdue ? "Overdue" : "Due today"}</p>
+                </div>
+              </div>
+            );
+          })}
+          {todayReminders.map(r => (
+            <div key={r.id} style={{ background: "#fff", borderRadius: "14px", border: "1px solid #ECEAE6", padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EAF2EA", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{r.emoji || "🌿"}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontFamily: FONT, fontSize: "14px", fontWeight: 600, color: "#1A1A1A" }}>{r.action} {r.plantName}</p>
+                {r.detail ? <p style={{ margin: "2px 0 0", fontFamily: FONT, fontSize: "12px", color: "#888" }}>{r.detail}</p> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Quick actions — compact side-by-side */}
+      <p style={{ margin: "0 0 12px", fontFamily: FONT, fontSize: "13px", fontWeight: 600, color: "#555", letterSpacing: "0.04em", textTransform: "uppercase" }}>Quick Actions</p>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          onClick={() => onNavigate("advisor")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px 10px", background: "#fff", border: "1px solid #ECEAE6", borderRadius: "14px", cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}
+          onMouseDown={e => (e.currentTarget.style.background = "#EAF2EA")}
+          onMouseUp={e => (e.currentTarget.style.background = "#fff")}
+          onTouchStart={e => (e.currentTarget.style.background = "#EAF2EA")}
+          onTouchEnd={e => (e.currentTarget.style.background = "#fff")}
+        >
+          <BotIcon /> AI Advisor
+        </button>
+        <button
+          onClick={() => onNavigate("diagnosis")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px 10px", background: "#fff", border: "1px solid #ECEAE6", borderRadius: "14px", cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}
+          onMouseDown={e => (e.currentTarget.style.background = "#EAF2EA")}
+          onMouseUp={e => (e.currentTarget.style.background = "#fff")}
+          onTouchStart={e => (e.currentTarget.style.background = "#EAF2EA")}
+          onTouchEnd={e => (e.currentTarget.style.background = "#fff")}
+        >
+          <MicroscopeIcon /> Diagnose
+        </button>
       </div>
+
     </div>
   );
 }
 
 function BottomNav({ activeTab, onTabChange }) {
   const tabs = [
-    { id: "home",         label: "Home",    Icon: HomeIcon },
-    { id: "journal",      label: "Journal", Icon: JournalIcon },
-    { id: "encyclopedia", label: "Plants",  Icon: BookIcon },
-    { id: "advisor",      label: "Advisor", Icon: AdvisorIcon },
-    { id: "profile",      label: "Profile", Icon: ProfileIcon },
+    { id: "home",      label: "Home",      Icon: HomeIcon },
+    { id: "myplants",  label: "My Plants", Icon: LeafIcon },
+    { id: "advisor",   label: "Advisor",   Icon: AdvisorIcon },
+    { id: "diagnosis", label: "Diagnose",  Icon: MicroscopeIcon },
+    { id: "profile",   label: "Profile",   Icon: ProfileIcon },
   ];
   return (
     <div style={{ background: "#fff", borderTop: "1px solid #ECEAE6", display: "flex", alignItems: "stretch", zIndex: 100, paddingBottom: "env(safe-area-inset-bottom)", flexShrink: 0, minHeight: "60px" }}>
@@ -219,6 +286,7 @@ export default function App() {
     aiDiagnosisCount, incrementDiagnosis,
   } = useGarden();
 
+  const [showSplash,  setShowSplash]  = useState(true);
   const [activeTab,   setActiveTab]   = useState("home");
   const [subView,     setSubView]     = useState(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -249,6 +317,10 @@ export default function App() {
     incrementDiagnosis();
     return true;
   };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   // Show onboarding for new users
   if (!onboarded) {
@@ -300,6 +372,17 @@ export default function App() {
 
     switch (activeTab) {
       case "home":         return <HomeScreen onNavigate={handleSubNav} />;
+      case "myplants":     return <div style={{ flex: 1, overflowY: "auto" }}><MyPlants /></div>;
+      case "diagnosis":
+        return (
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            <Diagnosis
+              userProfile={profile}
+              onBack={() => handleTabChange("home")}
+              onDiagnosisAttempt={handleDiagnosisAttempt}
+            />
+          </div>
+        );
       case "journal":      return <div style={{ flex: 1, overflowY: "auto", height: "100%" }}><Journal /></div>;
       case "encyclopedia": return <div style={{ flex: 1, overflowY: "auto" }}><Encyclopedia /></div>;
       case "advisor":

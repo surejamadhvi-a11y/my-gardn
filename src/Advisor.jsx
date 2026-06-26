@@ -122,12 +122,16 @@ export default function Advisor({ userProfile, isPremium, aiMessageCount, maxFre
     setLoading(true);
 
     try {
+      let myPlants = [];
+      try { myPlants = JSON.parse(localStorage.getItem("myPlants") || "[]"); } catch {}
+      const plants = myPlants.map(p => ({ name: p.name, growthStage: p.growthStage }));
+
       const res = await fetch("/api/advisor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: next,
-          systemPrompt: buildSystemPrompt(userProfile),
+          plants,
         }),
       });
       const data = await res.json();
